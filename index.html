@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ApuntesYA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFEEE7;
+    --paper-dark:#12181B;
+    --grid:#D8D3C4;
+    --grid-dark:#233036;
+    --ink:#23272B;
+    --ink-dark:#23272B; /* BUG #5: en modo oscuro este color no cambia -> texto oscuro sobre fondo oscuro en Perfil */
+    --ink-soft:#5B6167;
+    --card:#FFFFFF;
+    --card-dark:#1B2327;
+    --pink:#FF5D8F;
+    --yellow:#FFCE45;
+    --green:#4CAF7D;
+    --blue:#4C7EFF;
+    --line: 28px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Work Sans', sans-serif;
+    color:var(--ink);
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/100% var(--line),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/32px 100%,
+      var(--paper);
+    min-height:100vh;
+    transition:background .3s ease, color .3s ease;
+  }
+  body.dark{
+    background:
+      linear-gradient(var(--grid-dark) 1px, transparent 1px) 0 0/100% var(--line),
+      linear-gradient(90deg, var(--grid-dark) 1px, transparent 1px) 0 0/32px 100%,
+      var(--paper-dark);
+    color:#EDEAE2;
+  }
+
+  .app{max-width:520px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column;}
+
+  header.top{
+    padding:22px 20px 14px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+  }
+  .brand-mark{
+    width:34px; height:34px; border-radius:9px;
+    background:var(--pink);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fredoka', sans-serif; font-weight:700; color:white; font-size:17px;
+    transform:rotate(-4deg);
+    flex-shrink:0;
+  }
+  .brand h1{
+    font-family:'Fredoka', sans-serif; font-size:22px; margin:0; letter-spacing:.2px;
+  }
+  .brand p{margin:2px 0 0; font-size:13px; color:var(--ink-soft);}
+  body.dark .brand p{color:#9AA3A8;}
+
+  .darkbtn{
+    margin-left:auto; border:1.5px solid var(--grid); background:var(--card);
+    width:38px; height:38px; border-radius:10px; cursor:pointer; font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  body.dark .darkbtn{background:var(--card-dark); border-color:var(--grid-dark); color:#EDEAE2;}
+  .brandrow{display:flex; align-items:center;}
+
+  nav.tabs{
+    display:flex; gap:6px; padding:6px 20px 0;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:10px 6px 12px;
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink-soft);
+    background:transparent;
+    border:none;
+    border-bottom:3px solid transparent;
+    cursor:pointer;
+    border-radius:8px 8px 0 0;
+  }
+  .tab.active{
+    color:var(--ink);
+    border-bottom:3px solid var(--pink);
+    background:rgba(255,255,255,.5);
+  }
+  body.dark .tab{color:#8B9296;}
+  body.dark .tab.active{color:#EDEAE2; background:rgba(255,255,255,.04);}
+
+  main{flex:1; padding:14px 20px 90px;}
+
+  .searchrow{
+    display:flex; gap:8px; margin-bottom:16px;
+  }
+  .searchrow input{
+    flex:1;
+    padding:11px 14px;
+    border-radius:11px;
+    border:1.5px solid var(--grid);
+    background:var(--card);
+    font-family:'Work Sans', sans-serif;
+    font-size:14px;
+    color:var(--ink);
+  }
+  body.dark .searchrow input{background:var(--card-dark); border-color:var(--grid-dark); color:#EDEAE2;}
+
+  .chiprow{display:flex; gap:7px; overflow-x:auto; margin-bottom:16px; padding-bottom:2px;}
+  .chip{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:20px;
+    border:1.5px solid var(--grid);
+    background:var(--card);
+    white-space:nowrap;
+    cursor:pointer;
+    color:var(--ink-soft);
+  }
+  .chip.active{background:var(--ink); color:white; border-color:var(--ink);}
+  body.dark .chip{background:var(--card-dark); border-color:var(--grid-dark); color:#9AA3A8;}
+  body.dark .chip.active{background:var(--pink); border-color:var(--pink); color:white;}
+
+  .card{
+    background:var(--card);
+    border:1.5px solid var(--grid);
+    border-radius:14px;
+    padding:14px 14px 12px;
+    margin-bottom:14px;
+    cursor:pointer;
+    position:relative;
+  }
+  body.dark .card{background:var(--card-dark); border-color:var(--grid-dark);}
+
+  .card-top{display:flex; gap:10px;}
+  .thumb{
+    width:56px; height:56px; border-radius:10px; flex-shrink:0;
+    background:repeating-linear-gradient(180deg, #E4E0D3 0 6px, #DAD5C5 6px 7px);
+    border:1px solid var(--grid);
+    position:relative; overflow:hidden;
+  }
+  body.dark .thumb{background:repeating-linear-gradient(180deg,#22292C 0 6px,#1B2124 6px 7px); border-color:var(--grid-dark);}
+  .thumb.rot{ transform:rotate(90deg); } /* BUG #3: la miniatura de una foto subida aparece rotada 90° */
+
+  .card-body{flex:1; min-width:0;}
+  .card-title{font-family:'Fredoka', sans-serif; font-weight:600; font-size:15.5px; margin:0 0 4px; line-height:1.25;}
+  .card-meta{display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft);}
+  body.dark .card-meta{color:#8B9296;}
+  .tag{
+    padding:2px 8px; border-radius:20px; color:white; font-weight:500;
+  }
+
+  .card-foot{
+    display:flex; align-items:center; gap:14px; margin-top:10px; padding-top:10px;
+    border-top:1px dashed var(--grid);
+  }
+  body.dark .card-foot{border-top-color:var(--grid-dark);}
+  .foot-btn{
+    display:flex; align-items:center; gap:5px; font-size:12.5px; color:var(--ink-soft);
+    background:none; border:none; cursor:pointer; font-family:'Work Sans', sans-serif; padding:0;
+  }
+  body.dark .foot-btn{color:#9AA3A8;}
+  .foot-btn:active{opacity:.6;}
+
+  .avatarrow{position:absolute; top:12px; right:12px; display:flex; align-items:center;}
+  .mini-avatar{
+    width:22px; height:22px; border-radius:50%; font-size:10px; color:white;
+    display:flex; align-items:center; justify-content:center; font-weight:600;
+    margin-right:-10px; /* BUG #4: se superpone con el nombre del autor */
+    border:2px solid var(--card);
+  }
+  body.dark .mini-avatar{border-color:var(--card-dark);}
+  .mini-name{font-size:10.5px; color:var(--ink-soft); background:var(--paper); padding:2px 6px 2px 12px; border-radius:10px;}
+  body.dark .mini-name{color:#9AA3A8; background:var(--paper-dark);}
+
+  /* Subir */
+  .form-group{margin-bottom:16px;}
+  .form-group label{display:block; font-family:'Fredoka', sans-serif; font-weight:600; font-size:13.5px; margin-bottom:6px;}
+  .form-group input[type=text], .form-group select{
+    width:100%; padding:11px 13px; border-radius:11px; border:1.5px solid var(--grid);
+    background:var(--card); font-family:'Work Sans',sans-serif; font-size:14px; color:var(--ink);
+  }
+  body.dark .form-group input[type=text], body.dark .form-group select{background:var(--card-dark); border-color:var(--grid-dark); color:#EDEAE2;}
+  .filebox{
+    border:2px dashed var(--grid); border-radius:12px; padding:22px 14px; text-align:center;
+    font-size:13px; color:var(--ink-soft); cursor:pointer; background:rgba(255,255,255,.4);
+  }
+  body.dark .filebox{border-color:var(--grid-dark); color:#8B9296; background:rgba(255,255,255,.02);}
+  .filebox.picked{border-style:solid; border-color:var(--green); color:var(--ink);}
+  body.dark .filebox.picked{color:#EDEAE2;}
+
+  .bigbtn{
+    width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;
+    background:var(--ink); color:white; font-family:'Fredoka', sans-serif; font-weight:600; font-size:15px;
+    margin-top:6px;
+  }
+  body.dark .bigbtn{background:var(--pink);}
+  .bigbtn:active{opacity:.85;}
+
+  .hint{font-size:12px; color:var(--ink-soft); margin-top:8px; text-align:center;}
+  body.dark .hint{color:#8B9296;}
+
+  /* Perfil */
+  .profile-head{display:flex; gap:14px; align-items:center; margin-bottom:22px;}
+  .profile-avatar{
+    width:58px; height:58px; border-radius:50%; background:var(--blue); color:white;
+    display:flex; align-items:center; justify-content:center; font-family:'Fredoka',sans-serif; font-weight:600; font-size:20px;
+  }
+  .profile-head h2{font-family:'Fredoka',sans-serif; margin:0 0 3px; font-size:18px; color:var(--ink-dark);}
+  .profile-head p{margin:0; font-size:13px; color:var(--ink-soft);}
+  .stats-row{display:flex; gap:10px; margin-bottom:20px;}
+  .stat{
+    flex:1; background:var(--card); border:1.5px solid var(--grid); border-radius:12px; padding:12px; text-align:center;
+  }
+  body.dark .stat{background:var(--card-dark); border-color:var(--grid-dark);}
+  .stat b{display:block; font-family:'Fredoka',sans-serif; font-size:19px; color:var(--ink-dark);}
+  .stat span{font-size:11px; color:var(--ink-soft);}
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,18,14,.45); display:none; align-items:flex-end; justify-content:center; z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .sheet{
+    width:100%; max-width:520px; background:var(--paper); border-radius:20px 20px 0 0;
+    max-height:86vh; overflow-y:auto; padding:18px 20px 26px;
+  }
+  body.dark .sheet{background:var(--paper-dark); color:#EDEAE2;}
+  .sheet-handle{width:38px; height:4px; background:var(--grid); border-radius:4px; margin:0 auto 14px;}
+  body.dark .sheet-handle{background:var(--grid-dark);}
+  .sheet h3{font-family:'Fredoka',sans-serif; margin:4px 0 6px;}
+  .sheet-actions{display:flex; gap:8px; margin:14px 0 18px;}
+  .sheet-actions button{
+    flex:1; padding:10px 6px; border-radius:10px; border:1.5px solid var(--grid); background:var(--card);
+    font-size:12.5px; font-family:'Work Sans',sans-serif; cursor:pointer; color:var(--ink);
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+  }
+  body.dark .sheet-actions button{background:var(--card-dark); border-color:var(--grid-dark); color:#EDEAE2;}
+  .sheet-actions button span{font-size:16px;}
+
+  .comment{padding:10px 0; border-bottom:1px dashed var(--grid); font-size:13.5px;}
+  body.dark .comment{border-color:var(--grid-dark);}
+  .comment b{font-family:'Fredoka',sans-serif; font-weight:600; font-size:13px;}
+  .comment-meta{font-size:11px; color:var(--ink-soft); margin-top:2px;}
+  body.dark .comment-meta{color:#8B9296;}
+  .commentbox{display:flex; gap:8px; margin-top:14px;}
+  .commentbox input{flex:1; padding:10px 12px; border-radius:10px; border:1.5px solid var(--grid); background:var(--card); font-size:13px;}
+  body.dark .commentbox input{background:var(--card-dark); border-color:var(--grid-dark); color:#EDEAE2;}
+  .commentbox button{padding:0 16px; border-radius:10px; border:none; background:var(--ink); color:white; font-family:'Fredoka',sans-serif; font-weight:600; cursor:pointer;}
+  body.dark .commentbox button{background:var(--pink);}
+
+  .toast{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:white; padding:11px 18px; border-radius:10px; font-size:13.5px;
+    opacity:0; pointer-events:none; transition:opacity .25s ease, bottom .25s ease; z-index:60; max-width:86%; text-align:center;
+  }
+  .toast.show{opacity:1; bottom:26px;}
+
+  .crash{
+    position:fixed; inset:0; background:#1B2124; color:#EDEAE2; z-index:100;
+    display:none; align-items:center; justify-content:center; flex-direction:column; text-align:center; padding:40px;
+  }
+  .crash.show{display:flex;}
+  .crash .glyph{font-size:44px; margin-bottom:14px;}
+  .crash h2{font-family:'Fredoka',sans-serif; margin:0 0 8px;}
+  .crash p{color:#9AA3A8; font-size:13.5px; margin:0 0 22px; max-width:280px;}
+  .crash button{padding:11px 22px; border-radius:10px; border:none; background:var(--pink); color:white; font-family:'Fredoka',sans-serif; font-weight:600; cursor:pointer;}
+
+  .empty{text-align:center; padding:50px 20px; color:var(--ink-soft); font-size:13.5px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="brandrow">
+      <div class="brand">
+        <div class="brand-mark">Aya</div>
+        <div>
+          <h1>ApuntesYA</h1>
+          <p>5to año · apuntes del curso, todos en un solo lugar</p>
+        </div>
+      </div>
+      <button class="darkbtn" id="darkToggle" title="Modo oscuro">🌙</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="inicio">Inicio</button>
+    <button class="tab" data-tab="subir">Subir apunte</button>
+    <button class="tab" data-tab="perfil">Mi perfil</button>
+  </nav>
+
+  <main>
+
+    <!-- INICIO -->
+    <section id="tab-inicio">
+      <div class="searchrow">
+        <input type="text" id="searchInput" placeholder="Buscar apunte, materia o profe...">
+      </div>
+      <div class="chiprow" id="chipRow"></div>
+      <div id="notesList"></div>
+    </section>
+
+    <!-- SUBIR -->
+    <section id="tab-subir" style="display:none;">
+      <div class="form-group">
+        <label>Título del apunte</label>
+        <input type="text" id="noteTitle" placeholder="Ej: Resumen unidad 3 - Revolución Francesa">
+      </div>
+      <div class="form-group">
+        <label>Materia</label>
+        <select id="noteMateria">
+          <option value="">Elegir materia...</option>
+          <option>Matemática</option>
+          <option>Historia</option>
+          <option>Lengua</option>
+          <option>Biología</option>
+          <option>Inglés</option>
+          <option>Física</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Archivo</label>
+        <div class="filebox" id="fileBox">📎 Tocá para elegir una foto o PDF</div>
+      </div>
+      <button class="bigbtn" id="uploadBtn">Subri apunte</button>
+      <p class="hint">Se sube a nombre de tu perfil, visible para todo 5to año.</p>
+    </section>
+
+    <!-- PERFIL -->
+    <section id="tab-perfil" style="display:none;">
+      <div class="profile-head">
+        <div class="profile-avatar">CR</div>
+        <div>
+          <h2>Camila Reyes</h2>
+          <p>5to A · @camii.reyes</p>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><b id="statSubidos">3</b><span>subidos</span></div>
+        <div class="stat"><b id="statLikes">27</b><span>me gusta</span></div>
+        <div class="stat"><b>#2</b><span>ranking curso</span></div>
+      </div>
+      <p style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; margin-bottom:10px;">Tus apuntes</p>
+      <div id="myNotesList"></div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="overlay" id="overlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div id="sheetContent"></div>
+    </div>
+  </div>
+
+  <div class="crash" id="crashScreen">
+    <div class="glyph">⚠️</div>
+    <h2>ApuntesYA se cerró</h2>
+    <p>La app dejó de responder. Estamos trabajando para solucionarlo.</p>
+    <button onclick="document.getElementById('crashScreen').classList.remove('show')">Volver a intentar</button>
+  </div>
+
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   ApuntesYA — prototipo para taller de testing (DCIC)
+   Este archivo contiene bugs intencionales para el ejercicio en vivo.
+   Cada uno está marcado con /* BUG #n *​/ para referencia del docente.
+   No mostrar este código a los alumnos antes del ejercicio.
+------------------------------------------------------------------- */
+
+const MATERIA_COLOR = {
+  "Matemática": "#4C7EFF",
+  "Historia": "#FF5D8F",
+  "Lengua": "#4CAF7D",
+  "Biología": "#4CAF7D",
+  "Inglés": "#FFCE45",
+  "Física": "#4C7EFF"
+};
+
+let notes = [
+  {
+    id: 1,
+    title: "Resumen Unidad 2 — Ecuaciones cuadráticas",
+    materiaDisplay: "Matemática",
+    materiaFilter: "Historia", // BUG #6: el filtro real no coincide con la materia mostrada
+    curso: "5to A",
+    autorMostrado: "Camila Reyes",
+    fecha: "18 Ago",
+    likes: 12,
+    rotated: false,
+    comments: [
+      { autor: "Bruno T.", texto: "Mil gracias por el resumen de ecuaciones cuadráticas, me re sirvió para el parcial!", fecha: "hace 2 días" },
+      { autor: "Delfina R.", texto: "¿Este es el mismo ejercicio de la unidad 2 que dio la profe el lunes?", fecha: "hace 1 día" }
+    ]
+  },
+  {
+    id: 2,
+    title: "Guía de lectura — El matadero",
+    materiaDisplay: "Lengua",
+    materiaFilter: "Lengua",
+    curso: "5to A",
+    autorMostrado: "Bruno Torres",
+    fecha: "31 Feb", // BUG #9: fecha inválida
+    likes: 8,
+    rotated: false,
+    comments: []
+  },
+  {
+    id: 3,
+    title: "Fotos pizarrón — Independencia Latinoamericana",
+    materiaDisplay: "Historia",
+    materiaFilter: "Historia",
+    curso: "5to B",
+    autorMostrado: "Delfina Ríos",
+    fecha: "15 Ago",
+    likes: 21,
+    rotated: true, // BUG #3
+    comments: [
+      { autor: "Camila R.", texto: "Se lee re bien, gracias Delfi", fecha: "hace 4 días" }
+    ]
+  },
+  {
+    id: 4,
+    title: "Formulario — Aparato reproductor",
+    materiaDisplay: "Biología",
+    materiaFilter: "Biología",
+    curso: "5to A",
+    autorMostrado: "Camila Reyes",
+    fecha: "12 Ago",
+    likes: 15,
+    rotated: false,
+    comments: []
+  },
+  {
+    id: 5,
+    title: "Vocabulario — Unit 4, Modal verbs",
+    materiaDisplay: "Inglés",
+    materiaFilter: "Inglés",
+    curso: "5to A",
+    autorMostrado: "Camila Reyes",
+    fecha: "9 Ago",
+    likes: 6,
+    rotated: false,
+    comments: []
+  },
+  {
+    id: 6,
+    title: "Ejercicios resueltos — Tiro oblicuo",
+    materiaDisplay: "Física",
+    materiaFilter: "Física",
+    curso: "5to B",
+    // BUG #8: el autor mostrado no coincide con quien realmente lo subió (Tomás Vega)
+    autorMostrado: "Delfina Ríos",
+    fecha: "5 Ago",
+    likes: 9,
+    rotated: false,
+    comments: []
+  },
+  {
+    id: 7,
+    title: "Mapa conceptual — Célula eucariota",
+    materiaDisplay: "Biología",
+    materiaFilter: "Biología",
+    curso: "5to B",
+    autorMostrado: "Iván Sosa",
+    fecha: "3 Ago",
+    likes: 18,
+    rotated: false,
+    comments: [
+      { autor: "Martina P.", texto: "Buenísimo para repasar antes del parcial", fecha: "hace 5 días" }
+    ]
+  },
+  {
+    id: 8,
+    title: "Resumen — Segunda Guerra Mundial",
+    materiaDisplay: "Historia",
+    materiaFilter: "Historia",
+    curso: "5to A",
+    autorMostrado: "Martina Paz",
+    fecha: "1 Ago",
+    likes: 24,
+    rotated: false,
+    comments: []
+  },
+  {
+    id: 9,
+    title: "Práctica — Sistemas de ecuaciones",
+    materiaDisplay: "Matemática",
+    materiaFilter: "Matemática",
+    curso: "5to A",
+    autorMostrado: "Tomás Vega",
+    fecha: "29 Jul",
+    likes: 14,
+    rotated: false,
+    comments: []
+  },
+  {
+    id: 10,
+    title: "Fichas de vocabulario — Present Perfect",
+    materiaDisplay: "Inglés",
+    materiaFilter: "Inglés",
+    curso: "5to B",
+    autorMostrado: "Lucía Funes",
+    fecha: "27 Jul",
+    likes: 5,
+    rotated: false,
+    comments: []
+  },
+  {
+    id: 11,
+    title: "Análisis de texto — Martín Fierro",
+    materiaDisplay: "Lengua",
+    materiaFilter: "Lengua",
+    curso: "5to A",
+    autorMostrado: "Bruno Torres",
+    fecha: "24 Jul",
+    likes: 11,
+    rotated: false,
+    comments: []
+  },
+  {
+    id: 12,
+    title: "Laboratorio — Leyes de Newton",
+    materiaDisplay: "Física",
+    materiaFilter: "Física",
+    curso: "5to A",
+    autorMostrado: "Iván Sosa",
+    fecha: "20 Jul",
+    likes: 7,
+    rotated: false,
+    comments: []
+  }
+];
+
+const CURRENT_USER = "Camila Reyes";
+const MATERIAS = ["Todas", "Matemática", "Historia", "Lengua", "Biología", "Inglés", "Física"];
+let activeChip = "Todas";
+let pendingFile = null;
+let lastUploadSnapshot = null; // usado para BUG #16
+
+// ---------- Tabs ----------
+let currentTab = "inicio";
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    // BUG #20: si estabas completando "Subir apunte" y te vas a otra pestaña
+    // sin haber subido nada, al volver el formulario aparece vacío.
+    if(currentTab === "subir" && btn.dataset.tab !== "subir"){
+      document.getElementById("noteTitle").value = "";
+      document.getElementById("noteMateria").value = "";
+      pendingFile = null;
+      document.getElementById("fileBox").textContent = "📎 Tocá para elegir una foto o PDF";
+      document.getElementById("fileBox").classList.remove("picked");
+    }
+    currentTab = btn.dataset.tab;
+
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll("main > section").forEach(s=>s.style.display="none");
+    document.getElementById("tab-"+btn.dataset.tab).style.display="block";
+    if(btn.dataset.tab==="perfil") renderMyNotes();
+  });
+});
+
+// ---------- Dark mode ----------
+document.getElementById("darkToggle").addEventListener("click", ()=>{
+  document.body.classList.toggle("dark");
+});
+// BUG #5 vive en el CSS: --ink-dark nunca se redefine para .dark, así que
+// el encabezado "Camila Reyes" en Perfil queda con texto oscuro sobre fondo oscuro.
+
+// ---------- Chips de materia ----------
+function renderChips(){
+  const row = document.getElementById("chipRow");
+  row.innerHTML = "";
+  MATERIAS.forEach(m=>{
+    const chip = document.createElement("button");
+    chip.className = "chip" + (m===activeChip ? " active": "");
+    chip.textContent = m;
+    chip.addEventListener("click", ()=>{ activeChip = m; renderChips(); renderNotes(); });
+    row.appendChild(chip);
+  });
+}
+
+// ---------- Feed ----------
+function renderNotes(){
+  const list = document.getElementById("notesList");
+  list.innerHTML = "";
+
+  // BUG #10: la búsqueda no filtra nada — se lee el input pero nunca se aplica al listado.
+  const query = document.getElementById("searchInput").value; // guardado pero no usado
+
+  let visible = notes;
+  if(activeChip !== "Todas"){
+    visible = notes.filter(n => n.materiaFilter === activeChip);
+  }
+
+  if(visible.length===0){
+    list.innerHTML = '<div class="empty">No hay apuntes para mostrar todavía.</div>';
+    return;
+  }
+
+  visible.forEach(n=>{
+    const card = document.createElement("div");
+    card.className = "card";
+    const color = MATERIA_COLOR[n.materiaDisplay] || "#999";
+    const initials = n.autorMostrado.split(" ").map(w=>w[0]).join("").slice(0,2);
+    card.innerHTML = `
+      <div class="avatarrow">
+        <div class="mini-avatar" style="background:${color}">${initials}</div>
+        <div class="mini-name">${n.autorMostrado}</div>
+      </div>
+      <div class="card-top">
+        <div class="thumb ${n.rotated ? 'rot':''}"></div>
+        <div class="card-body">
+          <p class="card-title">${n.title}</p>
+          <div class="card-meta">
+            <span class="tag" style="background:${color}">${n.materiaDisplay}</span>
+            <span>${n.curso}</span>
+            <span>· ${n.fecha}</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <button class="foot-btn like-btn" data-id="${n.id}"><span>🐢</span> <span>me gusta</span> <span class="like-count">(${n.likes})</span></button>
+        <button class="foot-btn comment-open" data-id="${n.id}">💬 ${n.comments.length}</button>
+        <button class="foot-btn dl-btn" data-id="${n.id}">⬇️ Descargar</button>
+      </div>
+    `;
+    // BUG #2: el botón dice "me gusta" pero el ícono es una tortuga (🐢), sin
+    // ninguna relación con la acción — inconsistencia de interfaz intencional.
+    card.addEventListener("click", (e)=>{
+      if(e.target.closest(".like-btn") || e.target.closest(".dl-btn")) return;
+      openSheet(n.id);
+    });
+    list.appendChild(card);
+  });
+
+  // Like button behavior
+  list.querySelectorAll(".like-btn").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const id = Number(btn.dataset.id);
+      const note = notes.find(x=>x.id===id);
+      note.likes -= 1; // BUG #7: el contador baja en vez de subir al tocar "me gusta"
+      renderNotes();
+    });
+  });
+
+  // Download button behavior
+  list.querySelectorAll(".dl-btn").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      // BUG #11: botón muerto — no descarga nada ni muestra ningún mensaje.
+    });
+  });
+}
+
+// ---------- Sheet / detalle ----------
+function openSheet(id){
+  const note = notes.find(n=>n.id===id);
+  const sheet = document.getElementById("sheetContent");
+  sheet.dataset.noteId = id;
+  sheet.innerHTML = `
+    <h3>${note.title}</h3>
+    <p style="font-size:13px; color:var(--ink-soft); margin:0 0 4px;">
+      ${note.autorMostrado} · ${note.curso} · ${note.fecha}
+    </p>
+    <div class="sheet-actions">
+      <button class="sheet-report" data-id="${note.id}"><span>🚩</span>Reportar</button>
+      <button class="sheet-fav"><span>📌</span>Guardar</button>
+      <button class="sheet-share"><span>↗️</span>Compartir</button>
+    </div>
+    <p style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:14px; margin:6px 0 4px;">Comentarios</p>
+    <div id="commentList"></div>
+    <div class="commentbox">
+      <input type="text" id="commentInput" placeholder="Escribí un comentario...">
+      <button id="commentSend">Enviar</button>
+    </div>
+  `;
+  renderComments();
+
+  document.getElementById("overlay").classList.add("show");
+
+  sheet.querySelector(".sheet-report").addEventListener("click", ()=>{
+    // BUG #14: "Reportar" borra el apunte directamente en vez de mandarlo a revisión.
+    notes = notes.filter(x=>x.id!==note.id);
+    document.getElementById("overlay").classList.remove("show");
+    renderNotes();
+    showToast("Apunte eliminado");
+  });
+
+  document.getElementById("commentSend").addEventListener("click", ()=> sendComment(note.id));
+
+  sheet.querySelector(".sheet-fav").addEventListener("click", ()=>{
+    // BUG #19: "Guardar" cierra la ficha y de paso resetea la búsqueda y el
+    // filtro de materia que el alumno tenía aplicados, sin avisar.
+    document.getElementById("overlay").classList.remove("show");
+    document.getElementById("searchInput").value = "";
+    activeChip = "Todas";
+    renderChips();
+    renderNotes();
+  });
+
+  sheet.querySelector(".sheet-share").addEventListener("click", ()=>{
+    // BUG #17: "Compartir" no comparte nada — directamente cuelga la app.
+    document.getElementById("crashScreen").classList.add("show");
+  });
+}
+
+function renderComments(){
+  const box = document.getElementById("commentList");
+  // BUG #13: siempre se muestran los comentarios del apunte con id 1,
+  // sin importar qué apunte se esté viendo — comentarios "cruzados".
+  const source = notes.find(n=>n.id===1);
+  box.innerHTML = "";
+  if(source.comments.length===0){
+    box.innerHTML = '<p style="font-size:12.5px;color:var(--ink-soft);">Todavía no hay comentarios.</p>';
+    return;
+  }
+  source.comments.forEach(c=>{
+    const div = document.createElement("div");
+    div.className = "comment";
+    div.innerHTML = `<b>${c.autor}</b><br>${c.texto}<div class="comment-meta">${c.fecha}</div>`;
+    box.appendChild(div);
+  });
+}
+
+function sendComment(noteId){
+  const input = document.getElementById("commentInput");
+  if(!input.value.trim()) return;
+  const note = notes.find(n=>n.id===noteId);
+  note.comments.push({ autor: "Vos", texto: input.value.trim(), fecha: "ahora" });
+  input.value = "";
+  renderComments(); // sigue mostrando los del apunte #1 por el BUG #13
+}
+
+document.getElementById("overlay").addEventListener("click", (e)=>{
+  if(e.target.id === "overlay") document.getElementById("overlay").classList.remove("show");
+});
+
+// ---------- Subir apunte ----------
+document.getElementById("fileBox").addEventListener("click", ()=>{
+  // Simulamos la elección de archivo con opciones rápidas
+  const choice = Math.random();
+  if(choice < 0.34){
+    pendingFile = "foto.jpg";
+    document.getElementById("fileBox").textContent = "📷 foto.jpg seleccionada";
+  } else if(choice < 0.67){
+    pendingFile = "apunte.pdf";
+    document.getElementById("fileBox").textContent = "📄 apunte.pdf seleccionado";
+  } else {
+    pendingFile = "foto.jpg";
+    document.getElementById("fileBox").textContent = "📷 foto.jpg seleccionada";
+  }
+  document.getElementById("fileBox").classList.add("picked");
+});
+
+document.getElementById("uploadBtn").addEventListener("click", ()=>{
+  const titleInput = document.getElementById("noteTitle");
+  const materiaSelect = document.getElementById("noteMateria");
+
+  if(!titleInput.value.trim()){
+    showToast("Poné un título para tu apunte");
+    return;
+  }
+
+  if(Math.random() < 0.2){
+    // BUG #15: crash arbitrario — ocurre cada tanto (~1 de cada 5 subidas),
+    // sin importar si el archivo es foto o PDF. No es reproducible a pedido.
+    document.getElementById("crashScreen").classList.add("show");
+    return;
+  }
+
+  const materiaVal = materiaSelect.value; // puede quedar vacío
+  const newNote = {
+    id: Date.now(),
+    title: titleInput.value.trim(),
+    materiaDisplay: materiaVal ? materiaVal : "undefined", // BUG #12
+    materiaFilter: materiaVal ? materiaVal : "undefined",
+    curso: "5to A",
+    autorMostrado: CURRENT_USER,
+    fecha: "Ahora",
+    likes: 0,
+    rotated: false,
+    comments: []
+  };
+
+  // BUG #16: si se toca "Subri apunte" dos veces muy rápido, el segundo
+  // envío pisa al primero en vez de sumarlo — uno de los dos apuntes
+  // "desaparece" sin avisar ningún error.
+  if(lastUploadSnapshot && (Date.now() - lastUploadSnapshot) < 1200){
+    notes[notes.length-1] = newNote;
+  } else {
+    notes.push(newNote);
+  }
+  lastUploadSnapshot = Date.now();
+
+  titleInput.value = "";
+  materiaSelect.value = "";
+  pendingFile = null;
+  document.getElementById("fileBox").textContent = "📎 Tocá para elegir una foto o PDF";
+  document.getElementById("fileBox").classList.remove("picked");
+
+  showToast("¡Apunte subido!");
+  renderNotes();
+});
+
+// ---------- Perfil ----------
+function renderMyNotes(){
+  const mine = notes.filter(n=>n.autorMostrado===CURRENT_USER);
+  const list = document.getElementById("myNotesList");
+  list.innerHTML = "";
+  if(mine.length===0){
+    list.innerHTML = '<div class="empty">Todavía no subiste apuntes.</div>';
+    return;
+  }
+  mine.forEach(n=>{
+    const color = MATERIA_COLOR[n.materiaDisplay] || "#999";
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <p class="card-title">${n.title}</p>
+      <div class="card-meta">
+        <span class="tag" style="background:${color}">${n.materiaDisplay}</span>
+        <span>⭐ ${n.likes}</span>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// ---------- Toast ----------
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove("show"), 2200);
+}
+
+// ---------- Init ----------
+renderChips();
+renderNotes();
+</script>
+</body>
+</html>
